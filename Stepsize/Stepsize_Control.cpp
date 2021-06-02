@@ -7,6 +7,9 @@
 #include<Eigen/Dense>
 #include "dco.hpp"
 
+
+
+
 template<typename T,int N>
 typename Nonlinear::System<T,N>::VT Stepsize(
         const typename Nonlinear::System<T,N>::MT& A,
@@ -23,11 +26,23 @@ typename Nonlinear::System<T,N>::VT Stepsize(
         using DCO_TT=typename DCO_M::tape_t;
         typename Linear::System<DCO_T,N>::VT b_a(n);
         typename Linear::System<DCO_T,N>::MT A_a(n,n)
+        
+        //Theoretisch müssten wir doch am besten ab hier die Hesse
+        //Matrix berechnen und die dann weiter benutzen oder?
+        
         b_a(0) = dco::derivative(A(x));
         b_a(1) = dco::derivative(A(y));
-
-        for(i=0;i<n;i++){
-                A_a(0,i) = dco::derivative(b_a(
+        
+        
+        A_a(0,0) = dco::derviative(dco::derivative(A(x))(x));
+        A_a(0,1) = dco::derviative(dco::derivative(A(x))(y));
+        A_a(1,0) = dco::derviative(dco::derivative(A(y))(x));
+        A_a(1,1) = dco::derviative(dco::derivative(A(y))(y));
+        
+        
+        
+        
+        
 
 
 
