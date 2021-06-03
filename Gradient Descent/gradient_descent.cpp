@@ -1,11 +1,12 @@
 #include "gradient_descent.hpp"
-#include "adol-c.hpp"
+#include "adolc.h"
 #include "linesearch.hpp"
 
+class gradient_descent{
 
-void gradien_descent(f, x0, alpha, kmax){
+	void gradient_step(f, x0, alpha, kmax){
 
-	d = -grad(f,x0);
-	return line_search(f, x0, alpha, d, kmax)
-	
+		d = -aldoc::grad(f,x0);
+		return line_search(f, x0, alpha, d, kmax)
+	}
 }
