@@ -1,12 +1,13 @@
-#include "gradient_descent.hpp"
+#include "nonlinear_system.hpp"
+#include "Gradient_Descent.hpp"
 #include "adolc.h"
-#include "linesearch.hpp"
+#include "Linesearch.cpp"
+#include <Eigen/Dense>
 
-class gradient_descent{
 
-	void gradient_step(f, x0, alpha, kmax){
-
-		d = -aldoc::grad(f,x0);
-		return line_search(f, x0, alpha, d, kmax)
+	template<typename TS, typename TP, int NS, int NP>
+	Gradient<typename TS, typename TP, int NS, int NP>::calcGradient(){
+		const typename Eigen::VectorXd gradient(NS);
+		gradient  = -gradient(NS, System<TS, TP, NS, NP>::x(), gradient);
+		return gradient; 	
 	}
-}
