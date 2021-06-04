@@ -18,7 +18,7 @@ switch(_cond){
 	case 1: {
 		
 		TS alpha = _alpha_max;  
-		while(nlsys.f(ls.x()+alpha*dc.d()) > nlsys.f(ls.x())+_c_1*nlsys.dfdx(ls.x())*dc.d()){
+		while(nlsys.f(ls.x()+alpha*dc.descent_direction()) > nlsys.f(ls.x())+_c_1*nlsys.dfdx(ls.x())*dc.descent_direction()){
  			alpha = alpha*_shrinking_factor;
 		}	
 		return alpha;
@@ -27,7 +27,7 @@ switch(_cond){
 	//Curvature
 	case 2:{ 
 		TS alpha= _alpha_max;
-		while (nlsys.dfdx(ls.x()+alpha*dc.d())*dc.d() < _c_2*nlsys.dfdx(ls.x())*dc.d()){
+		while (nlsys.dfdx(ls.x()+alpha*dc.descent_direction())*dc.d() < _c_2*nlsys.dfdx(ls.x())*dc.descent_direction()){
 			alpha = alpha * _shrinking_factor;
 		 }
 		return alpha;
@@ -36,7 +36,7 @@ switch(_cond){
 	//Wolfe
 	case 3: {
 		TS alpha = _alpha_max;
-		while(nlsys.f(ls.x()+alpha*dc.d()) > nlsys.f(ls.x()) + _c_1*alpha*nlsys.dfdx(ls.x())*dc.d() && nlsys.dfdx(ls.x() + alpha*dc.d())*dc.d() < _c_2*nlsys.dfdx(ls.x())*dc.d()){
+		while(nlsys.f(ls.x()+alpha*dc.descent_direction()) > nlsys.f(ls.x()) + _c_1*alpha*nlsys.dfdx(ls.x())*dc.descent_direction() && nlsys.dfdx(ls.x() + alpha*dc.descecnt_direction())*dc.descent_direction() < _c_2*nlsys.dfdx(ls.x())*dc.descent_direction()){
 			alpha=alpha*_shrinking:factor;
 		}
 		return alpha;
