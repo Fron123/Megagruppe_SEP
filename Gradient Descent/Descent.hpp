@@ -1,7 +1,10 @@
 #pragma once  
 
-template<typename TS, typename TP, int NS, int NP>
-class Descent{
+namespace Nonlinear{
+	
+	template<typename TS, typename TP, int NS, int NP>
+	class Descent{
 
-	descent_direction()
+		descent_direction()
+	}
 }
