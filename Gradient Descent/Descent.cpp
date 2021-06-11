@@ -8,8 +8,8 @@ namespace Nonlinear{
 	template<typename TS, typename TP, int NS, int NP>
 	Descent<typename TS, typename TP, int NS, int NP>::descent_direction(){
 		const typename Eigen::VectorXd gradient(NS);
-		// v = Linesearch::get_v();
-		gradient = gradient(NS, System<TS, TP, NS, NP>::x(), gradient);
+		v = Linesearch::get_v();
+		gradient = gradient(1, NS, v, gradient);
 		return -gradient; 	
 	}
 }
