@@ -1,6 +1,6 @@
 #include "nonlinear_system.hpp"
 #include "Descent.hpp"
-#include "adolc.h"
+#include <adolc/adolc.h>
 #include "Linesearch.cpp"
 #include <Eigen/Dense>
 
