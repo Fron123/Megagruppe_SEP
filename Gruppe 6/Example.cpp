@@ -114,6 +114,12 @@ array1 = grad(xp,n);
 
 H = hess(xp,n);
 
+Eigen::MatrixXd<double,n,n> h;
+for (int i=0; i<n; i++) {
+	for (int j=0; j<n; j++)
+		h(i,j) = H[i][j];
+	}
+    
 Ematrix = eig(H,n);
 
 if (H > 0)
