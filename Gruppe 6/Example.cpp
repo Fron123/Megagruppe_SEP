@@ -4,18 +4,10 @@
 #include<math.h>
 #include<array>
 #include<Eigen/Dense>
+#include<random>
+#include <iomanip>
 
-
-Eigen::Matrix<double,1,1> eig(double** H,int n)
-{
-    Eigen::Matrix<double,n,n> Ematrix;
-    for(int i = 0; i<n; i++)
-        for(int j = 0; j<n; j++)
-            Ematrix(i)(j) = H[i][j];
-    return Ematrix;
-}
-
-double* grad(double* xp, int n)
+double* grad(double* xp, int n)                                             //Gradient berechnen mit ADOL-C
 {
     double  yp = 1.0;
     adouble* x = new adouble[n];
@@ -27,7 +19,7 @@ double* grad(double* xp, int n)
             x[i] <<= xp[i];
             temp += x[i]*x[i];
     }
-    y = -exp(-0.5*temp);
+    y = -exp(-0.5*temp);                                                    //<--Funktion definieren bitte hier
     y >>= yp;
     delete[] x;
     trace_off();
@@ -37,10 +29,10 @@ double* grad(double* xp, int n)
     return g;
 }
 
-double** hess(double* xp, int n)
+double** hess(double* xp, int n)                                            //Hesse berechnen mit ADOL-C
 {
     double  yp = 1.0;
-    adouble* x = new adouble[n];
+    adouble* x = new adouble[n];                                            //Ob das hier so nötig ist weiß ich ehrlich gesagt nicht
     adouble  y = 1;
     adouble temp;
     trace_on(1);
@@ -49,7 +41,7 @@ double** hess(double* xp, int n)
             x[i] <<= xp[i];
             temp += x[i]*x[i];
     }
-    y = -exp(-0.5*temp);
+    y = -exp(-0.5*temp);                                                    //<--Funktion definieren bitte hier
     y >>= yp;
     delete[] x;
     trace_off();
@@ -63,92 +55,87 @@ double** hess(double* xp, int n)
     return H;
 }
 
-double norm(double array)
+
+double norm(double* array, int n)
 {
-    double alpha;
-    alpha = sqrt(array*array);
+    double alpha,temp = 0;
+    for(int i = 0; i<n; i++){
+        temp += array[i]*array[i];
+    }
+    alpha = sqrt(temp);
+
     return alpha;
 }
 
-double norm(double array1, double array2)
-{
-    double alpha;
-    alpha = array2-array1;
-    alpha = sqrt(alpha*alpha);
-    return alpha;
-}
-
-
+constexpr int MIN = -1;                                                     //Definitionsbereich der Funktion
+constexpr int MAX = 1;                                                      //In diesem Fall D(-1,1)
 
 int main(){
-int n=2,i,j,tape_stats[11];
-std::cout << "SPEELPENNINGS PRODUCT (ADOL-C Documented Example) \n";
-std::cout << "number of independent variables = ?  \n";
+const int n=3;
+std::cout << "ADOL-C Tiefpunkt finden \n";
 
-Eigen::Matrix<double,n,n> Ematrix;
-
+std::srand(std::time(nullptr));                                             //Zufallsgenerator
 
 double* xp = new double[n];
 double* xp2 = new double[n];
-double  yp = 0.0;
-adouble* x = new adouble[n];
 adouble  y = 1;
 adouble temp;
-double eps = 1e-8;
 double* alpha = new double[0];
 double** H=(double**)malloc(n*sizeof(double*));
-double* Hessianlul = new double[0];
+
+double eps = 0.01;                                                          //Epsilon zum anpassen für den Linesearch
+alpha[0] = 0.01;                                                            //Alpha zum anpassen für den Linesearch
+
+for (int i=0; i<n; i++) {
+    xp[i] = MIN + (double)(rand()) / ((double)(RAND_MAX/(MAX - MIN)));      //Zuweisung der Zufallszahlen an die x-Werte
+}
+
+Eigen::Vector<double,n> v;                                                  //Erstellen eines Eigen Vektors mit den X-Werten
+for (int i=0; i<n; i++) {
+    v(i) = xp[i];
+}
+
+std::cout << "Das ist jetzt der VeKtor:" <<std::endl << v << std::endl;
 
 
-alpha[0] = 0.01;
-
-
-xp[0] = 1;
-
-xp[1] = 0.5;
-
-double* array1 = new double[n];
+double* array1 = new double[n];                                             //Array erstellen für den Gradienten
 double* array2 = new double[n];
 
-array1 = grad(xp,n);
+array1 = grad(xp,n);                                                        //Gradienten berechnen von den ersten X-Werten
 
-H = hess(xp,n);
+H = hess(xp,n);                                                             //Hessematrix ausrechenen zum prüfen???????
 
-Eigen::MatrixXd<double,n,n> h;
+Eigen::Matrix<double,n,n> h;                                                //Erstellen einer Eigen Matrix die der Hesse Matrix entspricht
 for (int i=0; i<n; i++) {
-	for (int j=0; j<n; j++)
-		h(i,j) = H[i][j];
-	}
-    
-Ematrix = eig(H,n);
-
-if (H > 0)
-{
-    std::cout<<"Hessematrix ist positiv definit"<<std::endl;
-}
-else
-{
-    return 1;
+        for (int j=0; j<n; j++){
+                h(i,j) = H[i][j];
+        }
 }
 
+std::cout << "Das ist jetzt die Hesse Matrix:" <<std::endl << h << std::endl;
 
 
-std::cout<<"Minimun: "<< xp[0]<<std::endl;
-i = 1;
+Eigen::LLT<Eigen::MatrixXd> lltOfA(h);                                       //Prüfen ob positiv Definitheit durch Cholesky-Zerlegung
+    if(lltOfA.info() == Eigen::NumericalIssue)
+    {
+        throw std::runtime_error("Die Matrix ist nicht positiv definit");
+    }
 
-while(norm(array1[0])>=eps){
-    xp2[0] = xp[0]-alpha[0]*array1[0];
-    array2 = grad(xp2,n);
-    //alpha[0] = (xp2[0]-xp[0])*(norm(array1[0],array2[0]))/((norm(array1[0],array2[0]))*(norm(array1[0],array2[0])));
-    //std::cout<<"Alpha: "<< alpha[0]<<std::endl;
-    xp[0] = xp2[0];
-    array1[0]=array2[0];
-    std::cout<<"Iteration: "<< i<<std::endl;
-    i = i+1;
+int iteration = 1;
+
+while(norm(array1,n)>=eps){
+    for(int j=0; j<n; j++){
+        xp2[j] = xp[j]-alpha[0]*array1[j];
+        array2 = grad(xp2,n);
+        //alpha[0] = (xp2[0]-xp[0])*(norm(array1[0],array2[0]))/((norm(array1[0],array2[0]))*(norm(array1[0],array2[0])));
+        xp[j] = xp2[j];
+        array1[j]=array2[j];
+    }
+    iteration = iteration+1;
 
 }
-
-std::cout<<"Minimun: "<< xp[0]<<std::endl;
-
-std::cout<<"Hessian: "<< H[0][0]<<std::endl;
+for(int j=0; j<n; j++){
+    std::cout<<"Minimun: "<< xp[j]<<std::endl;                                  //Ausgabe der numerisch berechneten Minimalstellen
+}
+std::cout<<"Bei Iteration: "<< iteration<<std::endl;
 }
